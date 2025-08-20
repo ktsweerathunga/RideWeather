@@ -29,6 +29,11 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
+	<!-- updated permissions-->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs location access to provide weather updates for your area</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs location access to send morning rain alerts</string>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
