@@ -145,7 +145,7 @@ class DatabaseService {
   }
 
   // Forecast Operations
-  Future<void> cacheForecast(String city, List<WeatherForecast> forecasts) async {
+  Future<void> cacheForecast(String city, List<DailyWeather> forecasts) async {
     final db = await database;
     final batch = db.batch();
 
@@ -159,7 +159,7 @@ class DatabaseService {
         'date': forecast.date.millisecondsSinceEpoch,
         'maxTemp': forecast.maxTemp,
         'minTemp': forecast.minTemp,
-        'condition': forecast.condition,
+        'condition': forecast.description,
         'description': forecast.description,
         'humidity': forecast.humidity,
         'windSpeed': forecast.windSpeed,
@@ -171,7 +171,7 @@ class DatabaseService {
     await batch.commit();
   }
 
-  Future<List<WeatherForecast>> getCachedForecast(String city) async {
+  Future<List<DailyWeather>> getCachedForecast(String city) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       _forecastTable,
@@ -180,15 +180,15 @@ class DatabaseService {
       orderBy: 'date ASC',
     );
 
-    return maps.map((map) => WeatherForecast(
+    return maps.map((map) => DailyWeather(
       date: DateTime.fromMillisecondsSinceEpoch(map['date']),
       maxTemp: map['maxTemp'],
       minTemp: map['minTemp'],
-      condition: map['condition'],
+      rainProbability: map['rainProbability'].toDouble(),
       description: map['description'],
-      humidity: map['humidity'],
+      icon: '',
       windSpeed: map['windSpeed'],
-      rainProbability: map['rainProbability'],
+      humidity: map['humidity'],
     )).toList();
   }
 
@@ -211,12 +211,12 @@ class DatabaseService {
         _hourlyWeatherTable,
         {
           'city': city,
-          'time': hourly.time.millisecondsSinceEpoch,
+          'time': hourly.dateTime.millisecondsSinceEpoch,
           'temperature': hourly.temperature,
-          'condition': hourly.condition,
+          'condition': hourly.description,
           'rainProbability': hourly.rainProbability,
           'windSpeed': hourly.windSpeed,
-          'humidity': hourly.humidity,
+          'humidity': 0,
           'timestamp': DateTime.now().millisecondsSinceEpoch,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
@@ -236,12 +236,12 @@ class DatabaseService {
     );
 
     return maps.map((map) => HourlyWeather(
-      time: DateTime.fromMillisecondsSinceEpoch(map['time']),
+      dateTime: DateTime.fromMillisecondsSinceEpoch(map['time']),
       temperature: map['temperature'],
-      condition: map['condition'],
-      rainProbability: map['rainProbability'],
+      rainProbability: map['rainProbability'].toDouble(),
+      description: map['condition'],
+      icon: '',
       windSpeed: map['windSpeed'],
-      humidity: map['humidity'],
     )).toList();
   }
 

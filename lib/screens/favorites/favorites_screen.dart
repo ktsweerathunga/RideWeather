@@ -14,7 +14,7 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   final OfflineWeatherService _offlineService = OfflineWeatherService();
   List<String> _favorites = [];
-  Map<String, CurrentWeather?> _weatherData = {};
+  Map<String, WeatherModel?> _weatherData = {};
   bool _isLoading = true;
 
   @override
@@ -154,7 +154,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _buildFavoriteCard(String city, CurrentWeather? weather) {
+  Widget _buildFavoriteCard(String city, WeatherModel? weather) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: NeumorphicCard(
@@ -172,7 +172,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 // Weather icon
                 if (weather != null)
                   CustomWeatherIcons.getWeatherIcon(
-                    weather.condition,
+                    weather.description,
                     size: 40,
                   )
                 else
@@ -203,7 +203,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       if (weather != null) ...[
                         const SizedBox(height: 4),
                         Text(
-                          '${weather.temperature.toInt()}°C • ${weather.condition}',
+                          '${weather.temperature.toInt()}°C • ${weather.description}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey.shade600,

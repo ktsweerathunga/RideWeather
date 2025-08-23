@@ -30,8 +30,8 @@ class WeatherService {
           description: weather.description,
           icon: weather.icon,
           dateTime: weather.dateTime,
-          hourlyForecast: forecasts['hourly'] ?? [],
-          dailyForecast: forecasts['daily'] ?? [],
+          hourlyForecast: (forecasts['hourly'] as List<HourlyWeather>?) ?? [],
+          dailyForecast: (forecasts['daily'] as List<DailyWeather>?) ?? [],
         );
       } else {
         throw Exception('Failed to load weather data');
@@ -64,8 +64,8 @@ class WeatherService {
           description: weather.description,
           icon: weather.icon,
           dateTime: weather.dateTime,
-          hourlyForecast: forecasts['hourly'] ?? [],
-          dailyForecast: forecasts['daily'] ?? [],
+          hourlyForecast: (forecasts['hourly'] as List<HourlyWeather>?) ?? [],
+          dailyForecast: (forecasts['daily'] as List<DailyWeather>?) ?? [],
         );
       } else {
         throw Exception('Failed to load weather data');

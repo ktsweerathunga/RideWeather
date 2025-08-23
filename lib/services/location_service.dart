@@ -1,5 +1,4 @@
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:geocoding/geocoding.dart';
 
 class LocationService {
@@ -120,6 +119,6 @@ class LocationService {
 
   // Open app settings
   Future<void> openAppSettings() async {
-    await PermissionHandler().openAppSettings();
+  await openAppSettings();
   }
 }

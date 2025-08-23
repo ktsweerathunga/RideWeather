@@ -130,3 +130,31 @@ class DailyWeather {
     );
   }
 }
+
+// Add your weather models here, e.g. WeatherForecast, HourlyWeather, etc.
+
+class CurrentWeather {
+  final double temperature;
+  final String condition;
+  final String description;
+  final int humidity;
+  final int pressure;
+  final double windSpeed;
+  final int windDirection;
+  final double visibility;
+  final double uvIndex;
+  final double feelsLike;
+
+  CurrentWeather({
+    required this.temperature,
+    required this.condition,
+    required this.description,
+    required this.humidity,
+    required this.pressure,
+    required this.windSpeed,
+    required this.windDirection,
+    required this.visibility,
+    required this.uvIndex,
+    required this.feelsLike,
+  });
+}

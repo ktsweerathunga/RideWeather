@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -40,8 +42,8 @@ class NotificationService {
       return granted ?? false;
     }
 
-    final DarwinFlutterLocalNotificationsPlugin? iosImplementation =
-        _notifications.resolvePlatformSpecificImplementation<DarwinFlutterLocalNotificationsPlugin>();
+    final IOSFlutterLocalNotificationsPlugin? iosImplementation =
+        _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
 
     if (iosImplementation != null) {
       final bool? granted = await iosImplementation.requestPermissions(
@@ -140,15 +142,16 @@ class NotificationService {
 
     try {
       final selectedCity = await getSelectedCityForNotifications();
-      final weatherService = WeatherService();
-      final hourlyWeather = await weatherService.getHourlyWeather(selectedCity);
+  final weatherService = WeatherService();
+  final weather = await weatherService.getCurrentWeather(selectedCity);
+  final hourlyWeather = weather.hourlyForecast;
       
       if (hourlyWeather.isEmpty) return;
 
       // Check for rain in the next 4 hours (morning commute time)
       final now = DateTime.now();
-      final morningHours = hourlyWeather.where((weather) {
-        final hourDiff = weather.time.difference(now).inHours;
+      final morningHours = hourlyWeather.where((hour) {
+        final hourDiff = hour.dateTime.difference(now).inHours;
         return hourDiff >= 0 && hourDiff <= 4;
       }).toList();
 
@@ -159,9 +162,9 @@ class NotificationService {
           .reduce((a, b) => a > b ? a : b);
 
       if (maxRainProbability >= 60) {
-        await _showMorningRainAlert(selectedCity, maxRainProbability, morningHours);
+        await _showMorningRainAlert(selectedCity, maxRainProbability.toInt(), morningHours);
       } else if (maxRainProbability >= 30) {
-        await _showMorningCloudyAlert(selectedCity, maxRainProbability);
+        await _showMorningCloudyAlert(selectedCity, maxRainProbability.toInt());
       } else {
         await _showMorningClearAlert(selectedCity);
       }
@@ -171,10 +174,10 @@ class NotificationService {
   }
 
   static Future<void> _showMorningRainAlert(String city, int probability, List<HourlyWeather> morningHours) async {
-    final rainTimes = morningHours
-        .where((w) => w.rainProbability >= 60)
-        .map((w) => '${w.time.hour}:${w.time.minute.toString().padLeft(2, '0')}')
-        .join(', ');
+  final rainTimes = morningHours
+    .where((w) => w.rainProbability >= 60)
+    .map((w) => '${w.dateTime.hour}:${w.dateTime.minute.toString().padLeft(2, '0')}')
+    .join(', ');
 
     await _notifications.show(
       1,

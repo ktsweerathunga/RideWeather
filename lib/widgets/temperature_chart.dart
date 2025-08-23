@@ -3,7 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../models/weather_model.dart';
 
 class TemperatureChart extends StatelessWidget {
-  final List<WeatherForecast> forecasts;
+  final List<DailyWeather> forecasts;
   final Color primaryColor;
 
   const TemperatureChart({

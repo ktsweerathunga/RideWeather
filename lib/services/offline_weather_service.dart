@@ -16,18 +16,28 @@ class OfflineWeatherService {
     }
   }
 
-  Future<CurrentWeather?> getCurrentWeather(String city) async {
+  Future<WeatherModel?> getCurrentWeather(String city) async {
     final hasInternet = await _hasInternetConnection();
     
     if (hasInternet) {
       try {
         // Try to fetch fresh data
         final weather = await _weatherService.getCurrentWeather(city);
-        if (weather != null) {
-          // Cache the fresh data
-          await _databaseService.cacheCurrentWeather(city, weather);
-          return weather;
-        }
+        // Convert WeatherModel to CurrentWeather for caching
+        final currentWeather = CurrentWeather(
+          temperature: weather.temperature,
+          condition: weather.description,
+          description: weather.description,
+          humidity: weather.humidity,
+          pressure: 0,
+          windSpeed: weather.windSpeed,
+          windDirection: 0,
+          visibility: weather.visibility.toDouble(),
+          uvIndex: 0,
+          feelsLike: weather.feelsLike,
+        );
+        await _databaseService.cacheCurrentWeather(city, currentWeather);
+        return weather;
       } catch (e) {
         // If API fails, fall back to cache
         print('API failed, falling back to cache: $e');
@@ -35,16 +45,33 @@ class OfflineWeatherService {
     }
 
     // Return cached data if no internet or API failed
-    return await _databaseService.getCachedCurrentWeather(city);
+    final cached = await _databaseService.getCachedCurrentWeather(city);
+    if (cached == null) return null;
+    // Convert CurrentWeather to WeatherModel with minimal fields (fallback)
+    return WeatherModel(
+      cityName: city,
+      country: '',
+      temperature: cached.temperature,
+      feelsLike: cached.feelsLike,
+      humidity: cached.humidity,
+      windSpeed: cached.windSpeed,
+      visibility: cached.visibility.toInt(),
+      description: cached.description,
+      icon: '',
+      dateTime: DateTime.now(),
+      hourlyForecast: [],
+      dailyForecast: [],
+    );
   }
 
-  Future<List<WeatherForecast>> getWeatherForecast(String city) async {
+  Future<List<DailyWeather>> getWeatherForecast(String city) async {
     final hasInternet = await _hasInternetConnection();
     
     if (hasInternet) {
       try {
         // Try to fetch fresh data
-        final forecasts = await _weatherService.getWeatherForecast(city);
+        final weather = await _weatherService.getCurrentWeather(city);
+        final forecasts = weather.dailyForecast;
         if (forecasts.isNotEmpty) {
           // Cache the fresh data
           await _databaseService.cacheForecast(city, forecasts);
@@ -57,7 +84,7 @@ class OfflineWeatherService {
     }
 
     // Return cached data if no internet or API failed
-    return await _databaseService.getCachedForecast(city);
+  return await _databaseService.getCachedForecast(city);
   }
 
   Future<List<HourlyWeather>> getHourlyWeather(String city) async {
@@ -66,7 +93,8 @@ class OfflineWeatherService {
     if (hasInternet) {
       try {
         // Try to fetch fresh data
-        final hourlyData = await _weatherService.getHourlyWeather(city);
+        final weather = await _weatherService.getCurrentWeather(city);
+        final hourlyData = weather.hourlyForecast;
         if (hourlyData.isNotEmpty) {
           // Cache the fresh data
           await _databaseService.cacheHourlyWeather(city, hourlyData);
@@ -79,7 +107,7 @@ class OfflineWeatherService {
     }
 
     // Return cached data if no internet or API failed
-    return await _databaseService.getCachedHourlyWeather(city);
+  return await _databaseService.getCachedHourlyWeather(city);
   }
 
   Future<WeatherData?> getCompleteWeatherData(String city) async {
@@ -92,8 +120,24 @@ class OfflineWeatherService {
       final hourly = await _databaseService.getCachedHourlyWeather(city);
       
       if (current != null) {
+        WeatherModel model = current is WeatherModel
+          ? current as WeatherModel
+          : WeatherModel(
+              cityName: city,
+              country: '',
+              temperature: current.temperature,
+              feelsLike: current.feelsLike,
+              humidity: current.humidity,
+              windSpeed: current.windSpeed,
+              visibility: current.visibility.toInt(),
+              description: current.description,
+              icon: '',
+              dateTime: DateTime.now(),
+              hourlyForecast: [],
+              dailyForecast: [],
+            );
         return WeatherData(
-          current: current,
+          current: model,
           forecasts: forecasts,
           hourly: hourly,
           isFromCache: true,
@@ -102,9 +146,9 @@ class OfflineWeatherService {
     }
 
     // Fetch fresh data
-    final current = await getCurrentWeather(city);
-    final forecasts = await getWeatherForecast(city);
-    final hourly = await getHourlyWeather(city);
+  final current = await getCurrentWeather(city);
+  final forecasts = await getWeatherForecast(city);
+  final hourly = await getHourlyWeather(city);
 
     if (current != null) {
       return WeatherData(
@@ -150,8 +194,8 @@ class OfflineWeatherService {
 }
 
 class WeatherData {
-  final CurrentWeather current;
-  final List<WeatherForecast> forecasts;
+  final WeatherModel current;
+  final List<DailyWeather> forecasts;
   final List<HourlyWeather> hourly;
   final bool isFromCache;
 

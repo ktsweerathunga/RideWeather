@@ -4,6 +4,7 @@ import '../models/weather_model.dart';
 import '../services/weather_service.dart';
 import '../services/location_service.dart';
 import '../services/notification_service.dart';
+import 'package:geolocator/geolocator.dart';
 import '../core/constants.dart';
 
 enum WeatherStatus { initial, loading, loaded, error }
@@ -94,7 +95,9 @@ class WeatherProvider extends ChangeNotifier {
       
       // Schedule morning rain alert if notifications are enabled
       if (_notificationsEnabled) {
-        await NotificationService.scheduleMorningRainAlert(weather);
+        await NotificationService.scheduleDailyMorningRainCheck().then((_) {
+          NotificationService.checkAndSendRainAlert();
+        });
       }
       
     } catch (e) {
@@ -132,7 +135,7 @@ class WeatherProvider extends ChangeNotifier {
       
       // Schedule morning rain alert if notifications are enabled
       if (_notificationsEnabled) {
-        await NotificationService.scheduleMorningRainAlert(weather);
+  await NotificationService.checkAndSendRainAlert();
       }
       
     } catch (e) {
@@ -194,7 +197,7 @@ class WeatherProvider extends ChangeNotifier {
       
       if (_notificationsEnabled && _currentWeather != null) {
         // Schedule morning rain alert
-        await NotificationService.scheduleMorningRainAlert(_currentWeather!);
+  await NotificationService.checkAndSendRainAlert();
       } else {
         // Cancel all notifications
         await NotificationService.cancelAllNotifications();
@@ -261,8 +264,8 @@ class WeatherProvider extends ChangeNotifier {
   Future<bool> checkLocationPermission() async {
     try {
       final permission = await _locationService.checkLocationPermission();
-      return permission == LocationPermission.whileInUse || 
-             permission == LocationPermission.always;
+  return permission == LocationPermission.whileInUse || 
+     permission == LocationPermission.always;
     } catch (e) {
       return false;
     }

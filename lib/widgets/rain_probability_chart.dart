@@ -148,7 +148,7 @@ class RainProbabilityChart extends StatelessWidget {
 
   String _getHourLabel(int index) {
     if (index >= 0 && index < hourlyData.length) {
-      final hour = hourlyData[index].time.hour;
+      final hour = hourlyData[index].dateTime.hour;
       return '${hour.toString().padLeft(2, '0')}:00';
     }
     return '';
